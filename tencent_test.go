@@ -18,9 +18,9 @@ func init() {
 		panic(err)
 	}
 
-	AppID = os.Getenv("APPID")
-	SecretID = os.Getenv("SECRET_ID")
-	SecretKey = os.Getenv("SECRET_KEY")
+	AppID = os.Getenv("TENCENT_SPEECH_APPID")
+	SecretID = os.Getenv("TENCENT_SECRET_ID")
+	SecretKey = os.Getenv("TENCENT_SECRET_KEY")
 }
 
 // MySpeechRecognitionListener implementation of SpeechRecognitionListener
