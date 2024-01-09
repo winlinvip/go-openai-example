@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
+	"io"
 	"os"
 	"testing"
 )
@@ -61,4 +62,34 @@ func Test_OpenAI_ASR(t *testing.T) {
 		fmt.Println(fmt.Sprintf("  #%v: [%.2f, %.2f] \"%v\" seek=%v, tokens=%v, temp=%v, avg=%v, comp=%v, nos=%v, trans=%v",
 			s.ID, s.Start, s.End, s.Text, s.Seek, len(s.Tokens), s.Temperature, s.AvgLogprob, s.CompressionRatio, s.NoSpeechProb, s.Transient))
 	}
+}
+
+func Test_OpenAI_TTS(t *testing.T) {
+	client := openai.NewClientWithConfig(conf)
+	resp, err := client.CreateSpeech(
+		context.Background(),
+		openai.CreateSpeechRequest{
+			Model: openai.TTSModel1, Input: "Hello, AI world!",
+			Voice: openai.VoiceNova, ResponseFormat: openai.SpeechResponseFormatAac,
+		},
+	)
+	if err != nil {
+		t.Errorf("TTS error: %v\n", err)
+		return
+	}
+	defer resp.Close()
+
+	out, err := os.Create("test.aac")
+	if err != nil {
+		t.Errorf("Unable to create the file for writing")
+		return
+	}
+	defer out.Close()
+
+	if _, err = io.Copy(out, resp); err != nil {
+		t.Errorf("Unable to write data to the file")
+		return
+	}
+
+	fmt.Println("Done.")
 }
