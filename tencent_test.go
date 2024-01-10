@@ -35,7 +35,6 @@ func init() {
 	SecretKey = os.Getenv("TENCENT_SECRET_KEY")
 }
 
-// MySpeechRecognitionListener implementation of SpeechRecognitionListener
 type MySpeechRecognitionListener struct {
 }
 
@@ -58,7 +57,9 @@ func (listener *MySpeechRecognitionListener) OnRecognitionComplete(response *asr
 func (listener *MySpeechRecognitionListener) OnFail(response *asr.SpeechRecognitionResponse, err error) {
 }
 
-func Test_Tencent_ASR(t *testing.T) {
+// See https://cloud.tencent.com/document/product/1093/48982
+// See https://github.com/TencentCloud/tencentcloud-speech-sdk-go/blob/master/examples/asrexample/asrexample.go
+func Test_Tencent_ASR_WS(t *testing.T) {
 	EngineModelType, inputFile, inputFormat := "16k_zh", "./test.wav", asr.AudioFormatWav
 	if err := func() error {
 		recognizer := asr.NewSpeechRecognizer(
@@ -71,18 +72,52 @@ func Test_Tencent_ASR(t *testing.T) {
 		}
 		defer recognizer.Stop()
 
-		audio, err := os.Open(inputFile)
-		if err != nil {
-			return errors.Wrapf(err, "open file error")
-		}
-		defer audio.Close()
-
 		if b, err := ioutil.ReadFile(inputFile); err != nil {
 			return errors.Wrapf(err, "read file error")
 		} else {
 			if err = recognizer.Write(b); err != nil {
 				return errors.Wrapf(err, "recognizer write error")
 			}
+		}
+
+		return nil
+	}(); err != nil {
+		t.Errorf("test error: %v", err)
+	}
+}
+
+// See https://cloud.tencent.com/document/product/1093/52097
+// See https://github.com/TencentCloud/tencentcloud-speech-sdk-go/blob/master/examples/flashexample/flashexample.go
+func Test_Tencent_ASR_Flash(t *testing.T) {
+	EngineModelType, inputFile := "16k_zh", "./test.wav"
+	if err := func() error {
+		recognizer := asr.NewFlashRecognizer(
+			AppID, common.NewCredential(SecretID, SecretKey),
+		)
+
+		data, err := ioutil.ReadFile(inputFile)
+		if err != nil {
+			return errors.Wrapf(err, "read file error")
+		}
+
+		req := new(asr.FlashRecognitionRequest)
+		req.EngineType = EngineModelType
+		req.VoiceFormat = "wav"
+		req.SpeakerDiarization = 0
+		req.FilterDirty = 0
+		req.FilterModal = 0
+		req.FilterPunc = 0
+		req.ConvertNumMode = 1
+		req.FirstChannelOnly = 1
+		req.WordInfo = 0
+
+		resp, err := recognizer.Recognize(req, data)
+		if err != nil {
+			return errors.Wrapf(err, "recognize error")
+		}
+
+		for _, channelResult := range resp.FlashResult {
+			fmt.Printf("channel_id: %d, result: %s\n", channelResult.ChannelId, channelResult.Text)
 		}
 
 		return nil
