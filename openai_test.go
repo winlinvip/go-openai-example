@@ -26,7 +26,7 @@ func Test_OpenAI_Chat(t *testing.T) {
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT4TurboPreview,
+			Model: openai.GPT3Dot5Turbo,
 			Messages: []openai.ChatCompletionMessage{
 				{Role: openai.ChatMessageRoleUser, Content: "Hello!"},
 			},
