@@ -46,7 +46,7 @@ func Test_OpenAI_ASR(t *testing.T) {
 		context.Background(),
 		openai.AudioRequest{
 			Model:    openai.Whisper1,
-			FilePath: "livestream-25-180152-490.mp4",
+			FilePath: "25-audio-f669a768-4099-4a73-910b-ab5d57e03545.m4a",
 			Format:   openai.AudioResponseFormatVerboseJSON,
 		},
 	)
