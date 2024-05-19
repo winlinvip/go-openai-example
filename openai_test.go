@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -92,4 +94,82 @@ func Test_OpenAI_TTS(t *testing.T) {
 	}
 
 	fmt.Println("Done.")
+}
+
+// https://platform.openai.com/docs/guides/vision/what-type-of-files-can-i-upload
+// We currently support PNG (.png), JPEG (.jpeg and .jpg), WEBP (.webp), and non-animated GIF (.gif).
+func Test_OpenAI_Vision_JPEG(t *testing.T) {
+	data, err := os.ReadFile("srs-image.jpg")
+	if err != nil {
+		t.Errorf("Unable to read the file")
+		return
+	}
+
+	bd := base64.StdEncoding.EncodeToString(data)
+
+	client := openai.NewClientWithConfig(conf)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4o,
+			Messages: []openai.ChatCompletionMessage{
+				{Role: openai.ChatMessageRoleUser, Content: "Recognize the text in the image."},
+				{Role: openai.ChatMessageRoleUser, MultiContent: []openai.ChatMessagePart{
+					{Type: openai.ChatMessagePartTypeImageURL, ImageURL: &openai.ChatMessageImageURL{
+						Detail: openai.ImageURLDetailLow, URL: fmt.Sprintf("data:image/jpeg;base64,%v", bd),
+					}},
+				}},
+			},
+		},
+	)
+	if err != nil {
+		t.Errorf("Completion error: %v\n", err)
+		return
+	}
+
+	content := resp.Choices[0].Message.Content
+	if !strings.Contains(content, "simple, high-efficiency, real-time video server") {
+		t.Errorf("Expected text not found: %v", content)
+		return
+	}
+
+	fmt.Println(content)
+}
+
+func Test_OpenAI_Vision_PNG(t *testing.T) {
+	data, err := os.ReadFile("srs-image.png")
+	if err != nil {
+		t.Errorf("Unable to read the file")
+		return
+	}
+
+	bd := base64.StdEncoding.EncodeToString(data)
+
+	client := openai.NewClientWithConfig(conf)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4o,
+			Messages: []openai.ChatCompletionMessage{
+				{Role: openai.ChatMessageRoleUser, Content: "Recognize the text in the image."},
+				{Role: openai.ChatMessageRoleUser, MultiContent: []openai.ChatMessagePart{
+					{Type: openai.ChatMessagePartTypeImageURL, ImageURL: &openai.ChatMessageImageURL{
+						Detail: openai.ImageURLDetailLow, URL: fmt.Sprintf("data:image/png;base64,%v", bd),
+					}},
+				}},
+			},
+		},
+	)
+	if err != nil {
+		t.Errorf("Completion error: %v\n", err)
+		return
+	}
+
+	content := resp.Choices[0].Message.Content
+	if !strings.Contains(content, "simple, high-efficiency, real-time video server") {
+		t.Errorf("Expected text not found: %v", content)
+		return
+	}
+
+	fmt.Println(content)
 }
