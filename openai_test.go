@@ -151,7 +151,7 @@ func Test_OpenAI_Vision_PNG(t *testing.T) {
 		openai.ChatCompletionRequest{
 			Model: openai.GPT4o,
 			Messages: []openai.ChatCompletionMessage{
-				{Role: openai.ChatMessageRoleUser, Content: "Recognize the text in the image."},
+				{Role: openai.ChatMessageRoleUser, Content: "Convert the image to text."},
 				{Role: openai.ChatMessageRoleUser, MultiContent: []openai.ChatMessagePart{
 					{Type: openai.ChatMessagePartTypeImageURL, ImageURL: &openai.ChatMessageImageURL{
 						Detail: openai.ImageURLDetailLow, URL: fmt.Sprintf("data:image/png;base64,%v", bd),
